@@ -1,17 +1,26 @@
 "use client";
 
+import { getIdentificationUser, addUser } from "@/api";
 import { useRouter } from "next/navigation";
 import React, { useState } from "react";
 
 export const Form = () => {
   const [mode, setMode] = useState("signup");
   const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+
 
   const router = useRouter();
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+    if(username === "" || password === "") {
+      alert("input username and password");
+      return;
+    }
+    const user = await getIdentificationUser(username);
     if (mode === "signup") {
-      if (username !== "root") {
+      if (user === null) {
+        await addUser(username,password);
         alert("registered!");
         setMode("login");
       } else {
@@ -19,13 +28,17 @@ export const Form = () => {
       }
     }
     if (mode === "login") {
-      if (username === "root") {
+      if (user !== null) {
+        if (user.pass != password) {
+          alert("password is wrong");
+          return;
+        }
         router.push("/main");
       } else {
         alert("failed");
       }
     }
-  };
+  }
 
   const handleChangeMode = () => {
     setMode(mode === "signup" ? "login" : "signup");
@@ -38,12 +51,13 @@ export const Form = () => {
         <p>
           <label>
             user name
-            <input
-              type="text"
-              onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                setUsername(e.target.value);
-              }}
-            />
+            <input type="text" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setUsername(e.target.value); }}/>
+          </label>
+        </p>
+        <p>
+          <label>
+            password
+            <input type="password" onChange={(e: React.ChangeEvent<HTMLInputElement>) => { setPassword(e.target.value); }}/>
           </label>
         </p>
         <p>

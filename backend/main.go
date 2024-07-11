@@ -10,8 +10,22 @@ import (
 	_ "github.com/lib/pq"
 )
 
+type User struct {
+	ID   int    `json:"id"`
+	Name string `json:"name"`
+	Pass string `json:"pass"`
+}
+
 func main() {
-	// データベース接続情報
+
+	r := gin.Default()
+
+	config := cors.DefaultConfig()
+	config.AllowOrigins = []string{"http://localhost:3000"}
+	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
+	r.Use(cors.New(config))
+
+	// DB connection
 	dsn := "postgres://myuser:mypassword@db:5432/mydatabase?sslmode=disable"
 	db, err := sql.Open("postgres", dsn)
 	if err != nil {
@@ -23,50 +37,58 @@ func main() {
 		log.Fatalf("Failed to ping database: %v", err)
 	}
 
-	r := gin.Default()
-
-	config := cors.DefaultConfig()
-	config.AllowOrigins = []string{"http://localhost:3000"}
-	config.AllowMethods = []string{"GET", "POST", "PUT", "DELETE"}
-	r.Use(cors.New(config))
-
-	r.GET("/api/data", func(c *gin.Context) {
-		data := map[string]interface{}{
-			"message": "Go lang",
+	// get all users
+	r.GET("/get/users", func(c *gin.Context) {
+		rows, err := db.Query("SELECT id, uname, pass FROM users")
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			return
 		}
-		c.JSON(http.StatusOK, data)
+		defer rows.Close()
+
+		var users []User
+		for rows.Next() {
+			var user User
+			if err := rows.Scan(&user.ID, &user.Name, &user.Pass); err != nil {
+				return
+			}
+			users = append(users, user)
+		}
+		c.JSON(http.StatusOK, users)
 	})
 
-	r.GET("/users", func(c *gin.Context) {
-		getUsersHandler(c, db)
+	// get user by name
+	r.GET("/get/user/:name", func(c *gin.Context) {
+		name := c.Param("name")
+		rows, err := db.Query("SELECT id, uname, pass FROM users WHERE uname=$1", name)
+		if err != nil {
+			return
+		}
+		defer rows.Close()
+
+		var users []User
+		for rows.Next() {
+			var user User
+			if err := rows.Scan(&user.ID, &user.Name, &user.Pass); err != nil {
+				return
+			}
+			users = append(users, user)
+		}
+
+		c.JSON(http.StatusOK, users)
+	})
+	// create user
+	r.GET("/add/user/:name/:pass", func(c *gin.Context) {
+		name := c.Param("name")
+		pass := c.Param("pass")
+		_, err := db.Exec("INSERT INTO users (uname,pass) VALUES ($1)", name, pass)
+		if err != nil {
+			return
+		}
 	})
 
+	// start server
 	port := ":8080"
 	r.Run(port)
 	select {}
-}
-
-func getUsersHandler(c *gin.Context, db *sql.DB) {
-	rows, err := db.Query("SELECT id, name FROM users")
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to query users"})
-		return
-	}
-	defer rows.Close()
-
-	var users []map[string]interface{}
-	for rows.Next() {
-		var id int
-		var name string
-		if err := rows.Scan(&id, &name); err != nil {
-			c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to scan user"})
-			return
-		}
-		users = append(users, map[string]interface{}{
-			"id":   id,
-			"name": name,
-		})
-	}
-
-	c.JSON(http.StatusOK, users)
 }
