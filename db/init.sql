@@ -21,16 +21,17 @@ GRANT ALL PRIVILEGES ON DATABASE mydatabase TO myuser;
 \connect mydatabase;
 
 CREATE TABLE IF NOT EXISTS users (
-    id SERIAL PRIMARY KEY,
-    name VARCHAR(100)
+   id SERIAL PRIMARY KEY,
+   uname VARCHAR(100),
+   pass VARCHAR(100)
 );
 
-INSERT INTO users (name) VALUES ('John Doe'), ('Jane Smith');
+INSERT INTO users (uname,pass) VALUES ('root', 'root');
+INSERT INTO users (uname,pass) VALUES ('kmjak','admin');
 
-CREATE TABLE todos (
-  id SERIAL PRIMARY KEY,
-  title VARCHAR(255) NOT NULL,
-  completed BOOLEAN NOT NULL DEFAULT FALSE,
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP,
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT CURRENT_TIMESTAMP
+CREATE TABLE chatlog (
+   id SERIAL PRIMARY KEY,
+   message_from VARCHAR(100),
+   message_to VARCHAR(100),
+   message TEXT
 );
