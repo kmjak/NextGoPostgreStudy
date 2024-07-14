@@ -29,9 +29,20 @@ CREATE TABLE IF NOT EXISTS users (
 INSERT INTO users (uname,pass) VALUES ('root', 'root');
 INSERT INTO users (uname,pass) VALUES ('kmjak','admin');
 
+create Table Friends(
+   id SERIAL PRIMARY KEY,
+   user1 VARCHAR(100),
+   user2 VARCHAR(100)
+);
+INSERT INTO Friends (user1,user2) VALUES ('user1','root');
+
 CREATE TABLE chatlog (
    id SERIAL PRIMARY KEY,
-   message_from VARCHAR(100),
-   message_to VARCHAR(100),
-   message TEXT
+   msg_from VARCHAR(100),
+   msg_to VARCHAR(100),
+   msg TEXT
 );
+INSERT INTO chatlog (msg_from,msg_to,msg) VALUES ('root','user1','Hello');
+INSERT INTO chatlog (msg_from,msg_to,msg) VALUES ('root','kmjak','Next.js');
+INSERT INTO chatlog (msg_from,msg_to,msg) VALUES ('kmjak','root','Go');
+INSERT INTO chatlog (msg_from,msg_to,msg) VALUES ('kmjak','root','lang');

@@ -16,6 +16,19 @@ type User struct {
 	Pass string `json:"pass"`
 }
 
+type Friend struct {
+	ID    int    `json:"id"`
+	User1 string `json:"user1"`
+	User2 string `json:"user2"`
+}
+
+type Chat struct {
+	ID   int    `json:"id"`
+	From string `json:"from"`
+	To   string `json:"to"`
+	Msg  string `json:"msg"`
+}
+
 func main() {
 
 	r := gin.Default()
@@ -77,11 +90,61 @@ func main() {
 
 		c.JSON(http.StatusOK, users)
 	})
+	// get chat log
+	r.GET("/get/chatlog/:user1/:user2", func(c *gin.Context) {
+		user1 := c.Param("user1")
+		user2 := c.Param("user2")
+		rows, err := db.Query("SELECT id, msg_from, msg_to, msg FROM chatlog WHERE (msg_from=$1 and msg_to=$2) or (msg_from=$2 and msg_to=$1)", user1, user2)
+		if err != nil {
+			return
+		}
+		defer rows.Close()
+		var chatlogs []Chat
+		for rows.Next() {
+			var chatlog Chat
+			if err := rows.Scan(&chatlog.ID, &chatlog.From, &chatlog.To, &chatlog.Msg); err != nil {
+				return
+			}
+			chatlogs = append(chatlogs, chatlog)
+		}
+		c.JSON(http.StatusOK, chatlogs)
+	})
+
+	// get user`s friends
+	r.GET("/get/friends/:name", func(c *gin.Context) {
+		name := c.Param("name")
+		rows, err := db.Query("SELECT id, user1, user2 FROM Friends WHERE user1=$1 or user2=$2", name, name)
+		if err != nil {
+			return
+		}
+		defer rows.Close()
+		var friends []Friend
+		for rows.Next() {
+			var friend Friend
+			if err := rows.Scan(&friend.ID, &friend.User1, &friend.User2); err != nil {
+				return
+			}
+			friends = append(friends, friend)
+		}
+		c.JSON(http.StatusOK, friends)
+	})
+
 	// create user
 	r.GET("/add/user/:name/:pass", func(c *gin.Context) {
 		name := c.Param("name")
 		pass := c.Param("pass")
-		_, err := db.Exec("INSERT INTO users (uname,pass) VALUES ($1)", name, pass)
+		_, err := db.Exec("INSERT INTO users (,pass) VALUES ($1,$2)", name, pass)
+		if err != nil {
+			return
+		}
+	})
+
+	// send msg
+	r.GET("/send/msg/:from/:to/:msg", func(c *gin.Context) {
+		from := c.Param("from")
+		to := c.Param("to")
+		msg := c.Param("msg")
+		_, err := db.Exec("INSERT INTO chatlog (msg_from, msg_to, msg) VALUES ($1,$2,$3)", from, to, msg)
 		if err != nil {
 			return
 		}
