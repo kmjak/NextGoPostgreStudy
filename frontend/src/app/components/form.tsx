@@ -29,13 +29,15 @@ export const Form = () => {
     }
     if (mode === "login") {
       if (user !== null) {
-        if (user.pass != password) {
-          alert("password is wrong");
-          return;
-        }
-        router.push("/main");
-      } else {
-        alert("failed");
+        user.map((u) => {
+          if (u.pass === password) {
+            router.push(`/main/${username}`);
+          }else{
+            alert("faild")
+          }
+        });
+      }else{
+        alert("faild")
       }
     }
   }
