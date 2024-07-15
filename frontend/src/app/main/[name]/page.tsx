@@ -1,5 +1,5 @@
 "use client";
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { MyStatusComponent } from './components/mystatus';
 import { getChatLog, getFriends, sendMsg } from '@/api';
 import { APIChatLogData, APIFriendsData } from '@/types';
@@ -14,6 +14,7 @@ export default function Show() {
   const [msg,setMsg] = useState<string>("");
   const params = useParams();
   const myName = params.name;
+  const ref = useRef<HTMLTextAreaElement>(null);
 
   const handleChangeMode = async () => {
     setMode(mode === "server" ? "chat" : "server");
@@ -33,11 +34,13 @@ export default function Show() {
 
   const handleSelectFriend = async (friend: string) => {
     if(friend !== null){
+      ref.current?.focus();
       if(selectedFriend !== friend){
         setSelectedFriend(friend);
         if(selectedFriend != null){
           const chatlogs = await getChatLog(myName.toString(), selectedFriend.toString());
           setChatlog(chatlogs);
+          setMsg("");
         }
       }
     }
@@ -45,7 +48,6 @@ export default function Show() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-
     if (selectedFriend !== null) {
       const fetchChatLog = async () => {
         const chatlogs = await getChatLog(myName.toString(), selectedFriend.toString());
@@ -158,7 +160,8 @@ export default function Show() {
             <form className="form" onSubmit={handleSubmit}>
               <textarea onChange={
                 (e: React.ChangeEvent<HTMLTextAreaElement>) => setMsg(e.target.value)
-              } value={msg}/>
+              } value={msg}
+              ref={ref}/>
               <button>✉️</button>
             </form>
           </div>
