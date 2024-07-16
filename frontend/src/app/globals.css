@@ -166,10 +166,6 @@
   font-size: 20px;
 }
 
-.friend-contain .friend{
-  color: white;
-  list-style: none;
-}
 .friend-status-contain {
   display: flex;
   gap: 10px;
@@ -179,6 +175,7 @@
   margin: 15px auto 0;
   align-items: center;
   border-radius: 17px;
+  color: white;
 }
 .friend-icon {
   position: relative;
@@ -382,4 +379,32 @@
   border: none;
   outline: none;
   right: 185px;
+}
+
+/* change profile */
+.change-profile-container {
+  position: fixed;
+  top: 90px;
+  background-color: white;
+  z-index: 100;
+  width: 300px;
+  height: calc(100% - 110px);
+  display: none;
+  background-color: #303134;
+  padding-top: 20px;
+}
+.change-profile-container.show{
+  display: block;
+}
+.change-profile-container .profile{
+  padding: 7px 0 7px 20px;
+  color: white;
+  font-size: 20px;
+}
+.change-profile-container .profile:hover{
+  background-color: #7d859746;
+}
+.mode-msg .mode-hr{
+  width: 90%;
+  margin: 13px auto;
 }

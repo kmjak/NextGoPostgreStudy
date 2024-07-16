@@ -1,19 +1,23 @@
 "use client";
-import { useState, useEffect } from 'react';
-import { MyStatusComponent } from './components/mystatus';
-import { getChatLog, getFriends, sendMsg } from '@/api';
-import { APIChatLogData, APIFriendsData } from '@/types';
+import { useState, useEffect, useRef } from 'react';
+import { getChatLog, getFriendsProfileByID, getFriendsProfileByPidID, getProfileByName, sendMsg } from '@/api';
+import { APIChatLogData, APIProfileData } from '@/types';
 import { useParams } from 'next/navigation';
 
 export default function Show() {
-  const [mode, setMode] = useState<string>("server");
-  const [selected, setSelected] = useState<string>("0a");
-  const [friend, setFriend] = useState<APIFriendsData[] | null>(null);
-  const [selectedFriend, setSelectedFriend] = useState<string | null>(null);
-  const [chatlog, setChatlog] = useState<APIChatLogData[] | null>(null);
-  const [msg,setMsg] = useState<string>("");
   const params = useParams();
   const myName = params.name;
+  const [mode, setMode] = useState<string>("server");
+  const [selected, setSelected] = useState<string>("0a");
+  const [selectedFriend, setSelectedFriend] = useState<number | null>(null);
+  const [chatlog, setChatlog] = useState<APIChatLogData[] | null>(null);
+  const [msg,setMsg] = useState<string>("");
+  const [userMode, setUserMode] = useState<string>("active");
+  const [profile, setProfile] = useState<APIProfileData[] | null>(null);
+  const [profileMode, setProfileMode] = useState<string>("");
+  const [friendProfile, setFriendProfile] = useState<APIProfileData[] | null>(null);
+  const [profileName, setProfileName] = useState<string>(myName.toString());
+  const ref = useRef<HTMLTextAreaElement>(null);
 
   const handleChangeMode = async () => {
     setMode(mode === "server" ? "chat" : "server");
@@ -23,21 +27,16 @@ export default function Show() {
     setSelected(name+"a");
   }
 
-  useEffect(() => {
-    const fetchFriendsData = async () => {
-      const f = await getFriends(myName.toString());
-      setFriend(f);
-    }
-    fetchFriendsData();
-  }, [myName]);
-
-  const handleSelectFriend = async (friend: string) => {
-    if(friend !== null){
-      if(selectedFriend !== friend){
-        setSelectedFriend(friend);
+  const handleSelectFriend = async (user_id: number) => {
+    if(user_id !== null){
+      ref.current?.focus();
+      if(selectedFriend !== user_id){
+        setSelectedFriend(user_id);
         if(selectedFriend != null){
-          const chatlogs = await getChatLog(myName.toString(), selectedFriend.toString());
-          setChatlog(chatlogs);
+          const id = selectedFriend;
+          // const chatlogs = await getChatLog(myName.toString(),);
+          // setChatlog(chatlogs);
+          setMsg("");
         }
       }
     }
@@ -45,7 +44,6 @@ export default function Show() {
 
   useEffect(() => {
     let interval: NodeJS.Timeout;
-
     if (selectedFriend !== null) {
       const fetchChatLog = async () => {
         const chatlogs = await getChatLog(myName.toString(), selectedFriend.toString());
@@ -72,6 +70,54 @@ export default function Show() {
     }
   }
 
+    
+  useEffect(() => {
+    let timer: NodeJS.Timeout;
+
+    const resetMode = () => {
+      setUserMode("stop");
+    };
+
+    const handleMouseMove = () => {
+      setUserMode("active");
+      clearTimeout(timer);
+      timer = setTimeout(resetMode, 1000);
+    };
+
+    window.addEventListener("mousemove", handleMouseMove);
+
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      clearTimeout(timer);
+    };
+  }, []);
+  useEffect(() => {
+    const fetchProfileData = async () => {
+      const p = await getProfileByName(myName.toString());
+      const f = await getFriendsProfileByID(myName.toString());
+      setProfile(p);
+      setFriendProfile(f);
+    }
+    fetchProfileData();
+  },[myName])
+
+  const handleChangeProfileMode = async () => {
+    setProfileMode(profileMode === "show" ? "" : "show");
+  }
+  const handleChangeProfile = async (name:string) => {
+    setProfileName(name);
+    if(name == myName){
+      const f = await getFriendsProfileByID(myName.toString());
+      setFriendProfile(f);
+    }else{
+      const f = await getFriendsProfileByPidID(myName.toString(), name);
+      setFriendProfile(f);
+    }
+
+    setProfileMode("");
+  }
+
+
   return (
     <main className='chat-container'>
       <div className="left-side">
@@ -96,20 +142,57 @@ export default function Show() {
       </div>
       {mode == "server" ? 
         <div className="channel-contain">
-          <MyStatusComponent />
-          {selected}
+          <div>
+            <section className="my-status-contain" onClick={handleChangeProfileMode}>
+              <div className={`my-icon ${userMode}`}></div>
+              <p className="my-name">{profileName}</p>
+            </section>
+            <div className="mode-msg">
+              <hr className="mode-hr"/>
+            </div>
+            <div className={`change-profile-container ${profileMode}`}>
+              {
+                profile?.map((p) => {
+                  return (
+                    <div key={p.id} className="profile" onClick={() => handleChangeProfile(p.name)}>
+                      <p>{p.name}</p>
+                    </div>
+                  )
+                })
+              }
+            </div>
+          </div>
         </div>
         :
         <div className="friend-contain">
-          <MyStatusComponent />
+          <div>
+            <section className="my-status-contain" onClick={handleChangeProfileMode}>
+              <div className={`my-icon ${userMode}`}></div>
+              <p className="my-name">{profileName}</p>
+            </section>
+            <div className="mode-msg">
+              <hr className="mode-hr"/>
+            </div>
+            <div className={`change-profile-container ${profileMode}`}>
+              {
+                profile?.map((p) => {
+                  return (
+                    <div key={p.id} className="profile" onClick={() => handleChangeProfile(p.name)}>
+                      <p>{p.name}</p>
+                    </div>
+                  )
+                })
+              }
+            </div>
+          </div>
           <ul>
-            {friend?.map((f) => (
-              <li className={`friend-status-contain ${(selectedFriend === f.user1 || selectedFriend === f.user2) ? ("selected") : ("null")}`}
-              key={f.id}
-              onClick={() => handleSelectFriend(myName === f.user1 ? f.user2 : f.user1)}
+            {friendProfile?.map((p) => (
+              <li className={`friend-status-contain ${selectedFriend == p.id ? ("selected") : ("")}`}
+              key={p.id}
+              onClick={() => handleSelectFriend(p.id)}
               >
                 <span className='friend-icon stop'></span>
-                {myName === f.user1 ? f.user2 : f.user1}
+                {p.name}
               </li>
             ))}
           </ul>
@@ -124,7 +207,15 @@ export default function Show() {
               <div className="none" />
               <div className="selected-friend">
                 <div className='friend-icon'/>
-                <h2 className='selected-friend-name'>{selectedFriend}</h2>
+                <h2 className='selected-friend-name'>
+                  {
+                    profile?.map((p) => {
+                      if (p.id == selectedFriend){
+                        return p.name;
+                      }
+                    })
+                  }
+                </h2>
               </div>
               <div className="friend-detail">三</div>
             </div>
@@ -158,7 +249,8 @@ export default function Show() {
             <form className="form" onSubmit={handleSubmit}>
               <textarea onChange={
                 (e: React.ChangeEvent<HTMLTextAreaElement>) => setMsg(e.target.value)
-              } value={msg}/>
+              } value={msg}
+              ref={ref}/>
               <button>✉️</button>
             </form>
           </div>

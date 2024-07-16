@@ -26,23 +26,46 @@ CREATE TABLE IF NOT EXISTS users (
    pass VARCHAR(100)
 );
 
-INSERT INTO users (uname,pass) VALUES ('root', 'root');
-INSERT INTO users (uname,pass) VALUES ('kmjak','admin');
 
-create Table Friends(
+create Table friends(
    id SERIAL PRIMARY KEY,
-   user1 VARCHAR(100),
-   user2 VARCHAR(100)
+   user1_id INT,
+   user2_id int,
+   user1_pid INT,
+   user2_pid INT
 );
-INSERT INTO Friends (user1,user2) VALUES ('user1','root');
+
+create Table profile(
+   id SERIAL PRIMARY KEY,
+   user_id INT,
+   name VARCHAR(100)
+);
 
 CREATE TABLE chatlog (
    id SERIAL PRIMARY KEY,
-   msg_from VARCHAR(100),
-   msg_to VARCHAR(100),
+   from_pid INT,
+   to_pid INT,
+   from_userid INT,
+   to_userid INT,
    msg TEXT
 );
-INSERT INTO chatlog (msg_from,msg_to,msg) VALUES ('root','user1','Hello');
-INSERT INTO chatlog (msg_from,msg_to,msg) VALUES ('root','kmjak','Next.js');
-INSERT INTO chatlog (msg_from,msg_to,msg) VALUES ('kmjak','root','Go');
-INSERT INTO chatlog (msg_from,msg_to,msg) VALUES ('kmjak','root','lang');
+INSERT INTO users (uname,pass) VALUES ('root','root');
+INSERT INTO users (uname,pass) VALUES ('kmjak','admin');
+INSERT INTO users (uname,pass) VALUES ('user1','user');
+INSERT INTO users (uname,pass) VALUES ('user2','user');
+INSERT INTO friends (user1_id,user2_id,user1_pid,user2_pid) VALUES (3,1,3,1);
+INSERT INTO friends (user1_id,user2_id,user1_pid,user2_pid) VALUES (1,2,4,6);
+INSERT INTO friends (user1_id,user2_id,user1_pid,user2_pid) VALUES (1,4,4,7);
+INSERT INTO chatlog (from_pid,to_pid,from_userid,to_userid,msg) VALUES (1,3,1,3,'Hello');
+INSERT INTO chatlog (from_pid,to_pid,from_userid,to_userid,msg) VALUES (4,6,1,2,'Next.js');
+INSERT INTO chatlog (from_pid,to_pid,from_userid,to_userid,msg) VALUES (4,6,1,2,'Go');
+INSERT INTO chatlog (from_pid,to_pid,from_userid,to_userid,msg) VALUES (6,4,2,1,'lang');
+INSERT INTO chatlog (from_pid,to_pid,from_userid,to_userid,msg) VALUES (4,7,1,4,'Hi');
+
+INSERT INTO profile (user_id,name) VALUES (1,'root');
+INSERT INTO profile (user_id,name) VALUES (2,'kmjak');
+INSERT INTO profile (user_id,name) VALUES (3,'user1');
+INSERT INTO profile (user_id,name) VALUES (1,'dog');
+INSERT INTO profile (user_id,name) VALUES (1,'cat');
+INSERT INTO profile (user_id,name) VALUES (2,'cat');
+INSERT INTO profile (user_id,name) VALUES (4,'cat');
