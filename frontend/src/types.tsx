@@ -5,12 +5,17 @@ export interface APIuserData {
 }
 export interface APIFriendsData {
   id: number;
-  user1: string;
-  user2: string;
+  user_id: number;
+  name: string;
 }
 export interface APIChatLogData {
   id: number;
   from: string;
   to: string;
   msg: string;
+}
+export interface APIProfileData {
+  id: number;
+  user_id: string;
+  name: string
 }
