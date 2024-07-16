@@ -52,3 +52,8 @@ export const addUser = async (username: string, password :string) => {
   const ret = await res.json();
   return ret;
 }
+
+// change Assignment profile
+export const changeAssignmentProfile = async (name:string, pname:string, friendPid:number) => {
+  await fetch(`http://localhost:8080/change/assignment/${name}/${pname}/${friendPid}`);
+}

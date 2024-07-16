@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { getChatLog, getFriendsProfileByID, getFriendsProfileByPidID, getProfileByName, sendMsg } from '@/api';
+import { changeAssignmentProfile, getChatLog, getFriendsProfileByID, getFriendsProfileByPidID, getProfileByName, sendMsg } from '@/api';
 import { APIChatLogData, APIProfileData } from '@/types';
 import { useParams } from 'next/navigation';
 
@@ -18,7 +18,9 @@ export default function Show() {
   const [friendProfile, setFriendProfile] = useState<APIProfileData[] | null>(null);
   const [profileName, setProfileName] = useState<string>(myName.toString());
   const [friendSettingMode, setFriendSettingMode] = useState<string>("hide");
+  const [profileAssignmentMode, setProfileAssignmentMode] = useState<string>("hide");
   const ref = useRef<HTMLTextAreaElement>(null);
+
 
   const handleChangeMode = async () => {
     setMode(mode === "server" ? "chat" : "server");
@@ -116,6 +118,52 @@ export default function Show() {
 
   const handleSettings = async () => {
     setFriendSettingMode(friendSettingMode === "show" ? "hide" : "show");
+    setProfileAssignmentMode("hide");
+  }
+
+  const handleChangeProfileAssignment = async () => {
+    setProfileAssignmentMode(profileAssignmentMode === "show" ? "hide" : "show");
+  }
+
+  const handleChangeProfileAssignmentData = async (name:string) => {
+    if(selectedFriend != null){
+      await changeAssignmentProfile(myName.toString(), name, selectedFriend);
+      
+      const f = await getFriendsProfileByID(myName.toString());
+      setFriendProfile(f);
+      
+      const p = await getProfileByName(myName.toString());
+      setProfile(p);
+      
+      const chatlog = await getChatLog(myName.toString(), selectedFriend);
+      setChatlog(chatlog);
+      
+      setProfileName(name);
+      
+      setProfileAssignmentMode("hide");
+      setFriendSettingMode("hide");
+    }
+  }
+  useEffect(() => {
+    const updateFriendProfiles = async () => {
+      if (profileName === myName.toString()) {
+        const f = await getFriendsProfileByID(myName.toString());
+        setFriendProfile(f);
+      } else {
+        const f = await getFriendsProfileByPidID(myName.toString(), profileName);
+        setFriendProfile(f);
+      }
+    };
+    
+    updateFriendProfiles();
+  }, [profileName, myName]);
+
+  const handleCloseFriendSettingModal = async () => {
+    setFriendSettingMode("hide");
+  }
+
+  const handleHideProfileChangeModal = async () => {
+    setProfileAssignmentMode("hide");
   }
 
   return (
@@ -201,7 +249,7 @@ export default function Show() {
       { mode == "server" ?
         <div className="chat-contain"></div>
       :
-        <div className="chat-contain">
+        <div className={`chat-contain ${friendSettingMode == "show" ? ("setting-open") : null}`}>
           <div className="chat-content">
             <div className="friend-option">
               <div className="none" />
@@ -212,7 +260,24 @@ export default function Show() {
                 </h2>
               </div>
               <div className="friend-detail" onClick={handleSettings}>三</div>
-              <div className={`friend-setting-modal ${friendSettingMode}`}></div>
+            </div>
+            <div className={`friend-setting-modal ${friendSettingMode}`}>
+              <h1 className='setting-title'>settings</h1>
+              <p className='setting' onClick={handleChangeProfileAssignment}>Change profile assignment</p>
+              <p className='setting-close' onClick={handleCloseFriendSettingModal}>close</p>
+            </div>
+            <div className={`change-profile-modal ${profileAssignmentMode === "hide" ? "hide" : "show"}`}>
+              <h2 className='setting-title'>Profile</h2>
+              {
+                profile?.map((p) => {
+                  return (
+                    <div key={p.id} className="change-profiles" onClick={() => handleChangeProfileAssignmentData(p.name)}>
+                      <p>{p.name}</p>
+                    </div>
+                  )
+                })
+              }
+              <p className="change-profiles" onClick={handleHideProfileChangeModal}>back..</p>
             </div>
             <hr className='friend-hr' />
             {chatlog?.map((chat) => (
