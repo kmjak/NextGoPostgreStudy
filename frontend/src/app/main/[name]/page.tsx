@@ -17,6 +17,7 @@ export default function Show() {
   const [profileMode, setProfileMode] = useState<string>("");
   const [friendProfile, setFriendProfile] = useState<APIProfileData[] | null>(null);
   const [profileName, setProfileName] = useState<string>(myName.toString());
+  const [friendSettingMode, setFriendSettingMode] = useState<string>("hide");
   const ref = useRef<HTMLTextAreaElement>(null);
 
   const handleChangeMode = async () => {
@@ -57,7 +58,7 @@ export default function Show() {
     e.preventDefault();
     if (msg !== ""){
       if (selectedFriend !== null){
-        await sendMsg(selectedFriend.toString(), myName.toString(), msg);
+        await sendMsg(myName.toString() ,selectedFriend, msg);
         setMsg("");
         const chatlogs = await getChatLog(myName.toString(), selectedFriend);
         setChatlog(chatlogs);
@@ -85,6 +86,7 @@ export default function Show() {
       clearTimeout(timer);
     };
   }, []);
+
   useEffect(() => {
     const fetchProfileData = async () => {
       const p = await getProfileByName(myName.toString());
@@ -108,8 +110,13 @@ export default function Show() {
       setFriendProfile(f);
     }
     setProfileMode("");
+    setSelectedFriend(null);
+    setChatlog(null);
   }
 
+  const handleSettings = async () => {
+    setFriendSettingMode(friendSettingMode === "show" ? "hide" : "show");
+  }
 
   return (
     <main className='chat-container'>
@@ -204,7 +211,8 @@ export default function Show() {
                   {friendProfile?.find((p) => p.id === selectedFriend)?.name}
                 </h2>
               </div>
-              <div className="friend-detail">三</div>
+              <div className="friend-detail" onClick={handleSettings}>三</div>
+              <div className={`friend-setting-modal ${friendSettingMode}`}></div>
             </div>
             <hr className='friend-hr' />
             {chatlog?.map((chat) => (
@@ -231,16 +239,21 @@ export default function Show() {
               )
             ))}
           </div>
-          <div className="chat-form">
-            <div className="form-option">+</div>
-            <form className="form" onSubmit={handleSubmit}>
-              <textarea onChange={
-                (e: React.ChangeEvent<HTMLTextAreaElement>) => setMsg(e.target.value)
-              } value={msg}
-              ref={ref}/>
-              <button>✉️</button>
-            </form>
-          </div>
+          {
+            selectedFriend !== null ? 
+            (
+              <div className="chat-form">
+                <div className="form-option">+</div>
+                <form className="form" onSubmit={handleSubmit}>
+                  <textarea onChange={
+                    (e: React.ChangeEvent<HTMLTextAreaElement>) => setMsg(e.target.value)
+                  } value={msg}
+                  ref={ref}/>
+                  <button>✉️</button>
+                </form>
+              </div>
+            ) : null
+          }
         </div>
       }    
     </main>

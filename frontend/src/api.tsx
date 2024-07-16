@@ -42,8 +42,8 @@ export const getChatLog = async (name:string,pid:number): Promise<APIChatLogData
 }
 
 //send msg
-export const sendMsg = async (form:string, to:string, msg:string) => {
-  const res = await fetch(`http://localhost:8080/send/msg/${form}/${to}/${msg}`);
+export const sendMsg = async (from_name:string, to_pid:number, msg:string) => {
+  const res = await fetch(`http://localhost:8080/send/msg/${from_name}/${to_pid}/${msg}`);
 }
 
 // create user

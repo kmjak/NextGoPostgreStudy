@@ -155,11 +155,29 @@ func main() {
 	})
 
 	// send msg
-	r.GET("/send/msg/:from/:to/:msg", func(c *gin.Context) {
-		from := c.Param("from")
-		to := c.Param("to")
+	r.GET("/send/msg/:from_name/:to_pid/:msg", func(c *gin.Context) {
+		from_name := c.Param("from_name")
+		to_pid := c.Param("to_pid")
 		msg := c.Param("msg")
-		db.Exec("INSERT INTO chatlog (msg_from, msg_to, msg) VALUES ($1,$2,$3)", from, to, msg)
+
+		friendPid, err := strconv.Atoi(to_pid)
+		if err != nil {
+			log.Fatalf("Failed to convert friendId to int: %v", err)
+		}
+
+		myId := getUserByName(db, from_name)[0].ID
+		friendData := getFriendsByID(db, myId)
+		var myPid int
+		for i := 0; i < len(friendData); i++ {
+			if friendData[i].User1_id == myId && friendData[i].User2_pid == friendPid {
+				myPid = friendData[i].User1_pid
+			} else if friendData[i].User2_id == myId && friendData[i].User1_pid == friendPid {
+				myPid = friendData[i].User2_pid
+			}
+		}
+
+		friendId := getProfilesByPid(db, friendPid)[0].UserID
+		db.Exec("INSERT INTO chatlog (from_pid,to_pid,from_userid,to_userid,msg) VALUES ($1,$2,$3,$4,$5)", myPid, friendPid, myId, friendId, msg)
 	})
 
 	// start server
