@@ -1,4 +1,4 @@
-import { APIChatLogData, APIFriendsData, APIProfileData, APIuserData } from "./types";
+import { APIChatLogData, APIProfileData, APIuserData } from "./types";
 
 // get users
 export const getUsers = async ():Promise<APIuserData[]> => {
@@ -22,9 +22,21 @@ export const getProfileByName = async (name:string):Promise<APIProfileData[]> =>
   return ret;
 }
 
+// get friends profile
+export const getFriendsProfileByID = async (name:string):Promise<APIProfileData[]> => {
+  const res = await fetch(`http://localhost:8080/get/friends/id/${name}`);
+  const ret = await res.json();
+  return ret;
+}
+export const getFriendsProfileByPidID = async (name:string, pname:string):Promise<APIProfileData[]> => {
+  const res = await fetch(`http://localhost:8080/get/friends/pid/${name}/${pname}`);
+  const ret = await res.json();
+  return ret;
+}
+
 // get chatlog
-export const getChatLog = async (uname:string,friend:string): Promise<APIChatLogData[]> => {
-  const res = await fetch(`http://localhost:8080/get/chatlog/${uname}/${friend}`);
+export const getChatLog = async (name:string,friend:string): Promise<APIChatLogData[]> => {
+  const res = await fetch(`http://localhost:8080/get/chatlog/${name}/${friend}`);
   const ret = await res.json();
   return ret;
 }

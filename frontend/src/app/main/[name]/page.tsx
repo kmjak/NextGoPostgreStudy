@@ -1,6 +1,6 @@
 "use client";
 import { useState, useEffect, useRef } from 'react';
-import { getChatLog, getProfileByName, sendMsg } from '@/api';
+import { getChatLog, getFriendsProfileByID, getFriendsProfileByPidID, getProfileByName, sendMsg } from '@/api';
 import { APIChatLogData, APIProfileData } from '@/types';
 import { useParams } from 'next/navigation';
 
@@ -15,6 +15,7 @@ export default function Show() {
   const [userMode, setUserMode] = useState<string>("active");
   const [profile, setProfile] = useState<APIProfileData[] | null>(null);
   const [profileMode, setProfileMode] = useState<string>("");
+  const [friendProfile, setFriendProfile] = useState<APIProfileData[] | null>(null);
   const [profileName, setProfileName] = useState<string>(myName.toString());
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -32,8 +33,9 @@ export default function Show() {
       if(selectedFriend !== user_id){
         setSelectedFriend(user_id);
         if(selectedFriend != null){
-          const chatlogs = await getChatLog(myName.toString(), selectedFriend.toString());
-          setChatlog(chatlogs);
+          const id = selectedFriend;
+          // const chatlogs = await getChatLog(myName.toString(),);
+          // setChatlog(chatlogs);
           setMsg("");
         }
       }
@@ -92,7 +94,9 @@ export default function Show() {
   useEffect(() => {
     const fetchProfileData = async () => {
       const p = await getProfileByName(myName.toString());
+      const f = await getFriendsProfileByID(myName.toString());
       setProfile(p);
+      setFriendProfile(f);
     }
     fetchProfileData();
   },[myName])
@@ -102,6 +106,14 @@ export default function Show() {
   }
   const handleChangeProfile = async (name:string) => {
     setProfileName(name);
+    if(name == myName){
+      const f = await getFriendsProfileByID(myName.toString());
+      setFriendProfile(f);
+    }else{
+      const f = await getFriendsProfileByPidID(myName.toString(), name);
+      setFriendProfile(f);
+    }
+
     setProfileMode("");
   }
 
@@ -174,7 +186,7 @@ export default function Show() {
             </div>
           </div>
           <ul>
-            {profile?.map((p) => (
+            {friendProfile?.map((p) => (
               <li className={`friend-status-contain ${selectedFriend == p.id ? ("selected") : ("")}`}
               key={p.id}
               onClick={() => handleSelectFriend(p.id)}

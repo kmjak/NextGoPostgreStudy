@@ -73,17 +73,12 @@ func main() {
 		c.JSON(http.StatusOK, users)
 	})
 
-	// get chat log
-	// r.GET("/get/chatlog/id/:user1/:user2", func(c *gin.Context) {
-	// 	user1 := c.Param("user1")
-	// 	user2 := c.Param("user2")
-	// 	chatlogs := getChatLogsByPid(db, user1, user2)
-	// 	c.JSON(http.StatusOK, chatlogs)
-	// })
-	// r.GET("/get/chatlog/pid/:user1/:user2", func(c *gin.Context) {
-	// 	user1 := c.Param("user1")
-	// 	user2 := c.Param("user2")
-	// 	chatlogs := getChatLogs(db, user1_id, user2_id)
+	// // get chat log
+	// r.GET("/get/chatlog/:name/:friend", func(c *gin.Context) {
+	// 	name := c.Param("name")
+	// 	id := getUserByName(db, name)[0].ID
+	// 	FriendID := getProfilesByPnameID(db, pid, name)[0].UserID
+	// 	chatlogs := getChatLogsByID(db, id, FriendID)
 	// 	c.JSON(http.StatusOK, chatlogs)
 	// })
 
@@ -116,8 +111,8 @@ func main() {
 		name := c.Param("name")
 		pname := c.Param("pname")
 		id := getUserByName(db, name)[0].ID
-		pid := getProfileByIdName(db, id, pname)[0].ID
-		friends := getFriendsByPidName(db, pid)
+		pid := getProfilesByPnameID(db, id, pname)[0].ID
+		friends := getFriendsByPid(db, pid, id)
 		var Friends []Profile
 		for i := 0; i < len(friends); i++ {
 			var Profile Profile
@@ -220,8 +215,8 @@ func getChatLogsByID(db *sql.DB, id1 int, id2 int) []Chat {
 	}
 	return chatlogs
 }
-func getChatLogsByPid(db *sql.DB, pid1 int, pid2 int) []Chat {
-	rows, err := db.Query("SELECT * FROM chatlog WHERE (from_pid=$1 and to_pid=$2) or (from_pid=$2 and to_pid=$1)", pid1, pid2)
+func getChatLogsByPid(db *sql.DB, pid1 string, pid2 string) []Chat {
+	rows, err := db.Query("SELECT * FROM chatlog WHERE (from_userid=$1 and to_userid=$2) or (from_userid=$2 and to_userid=$1)", pid1, pid2)
 	if err != nil {
 		return nil
 	}
@@ -255,8 +250,8 @@ func getFriendsByID(db *sql.DB, id int) []Friend {
 	}
 	return friends
 }
-func getFriendsByPidName(db *sql.DB, pid int) []Friend {
-	rows, err := db.Query("SELECT * FROM friends WHERE (user1_pid=$1 and user1_id=$1) or (user2_pid=$1 and user2_id=$2)", pid)
+func getFriendsByPid(db *sql.DB, pid int, id int) []Friend {
+	rows, err := db.Query("SELECT * FROM friends WHERE (user1_pid=$1 and user1_id=$2) or (user2_pid=$1 and user2_id=$1)", pid, id)
 	if err != nil {
 		return nil
 	}
@@ -272,7 +267,6 @@ func getFriendsByPidName(db *sql.DB, pid int) []Friend {
 	}
 	return friends
 }
-
 func getProfilesByUserID(db *sql.DB, user_pid int) []Profile {
 	rows, err := db.Query("SELECT * FROM profile WHERE user_id=$1", user_pid)
 	if err != nil {
@@ -307,8 +301,8 @@ func getProfilesByPid(db *sql.DB, user_pid int) []Profile {
 	}
 	return profiles
 }
-func getProfileByIdName(db *sql.DB, id int, name string) []Profile {
-	rows, err := db.Query("SELECT * FROM profile WHERE user_id=$1 and name=$2", id, name)
+func getProfilesByPnameID(db *sql.DB, user_pid int, name string) []Profile {
+	rows, err := db.Query("SELECT * FROM profile WHERE user_id=$1 and name=$2", user_pid, name)
 	if err != nil {
 		return nil
 	}

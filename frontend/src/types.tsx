@@ -3,11 +3,6 @@ export interface APIuserData {
   name: string;
   pass: string;
 }
-export interface APIFriendsData {
-  id: number;
-  user_id: number;
-  name: string;
-}
 export interface APIChatLogData {
   id: number;
   from: string;
