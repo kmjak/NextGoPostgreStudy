@@ -32,12 +32,7 @@ export default function Show() {
       ref.current?.focus();
       if(selectedFriend !== user_id){
         setSelectedFriend(user_id);
-        if(selectedFriend != null){
-          const id = selectedFriend;
-          // const chatlogs = await getChatLog(myName.toString(),);
-          // setChatlog(chatlogs);
-          setMsg("");
-        }
+        setMsg("");
       }
     }
   }
@@ -46,7 +41,7 @@ export default function Show() {
     let interval: NodeJS.Timeout;
     if (selectedFriend !== null) {
       const fetchChatLog = async () => {
-        const chatlogs = await getChatLog(myName.toString(), selectedFriend.toString());
+        const chatlogs = await getChatLog(myName.toString(), selectedFriend);
         setChatlog(chatlogs);
       };
 
@@ -64,12 +59,11 @@ export default function Show() {
       if (selectedFriend !== null){
         await sendMsg(selectedFriend.toString(), myName.toString(), msg);
         setMsg("");
-        const chatlogs = await getChatLog(myName.toString(), selectedFriend.toString());
+        const chatlogs = await getChatLog(myName.toString(), selectedFriend);
         setChatlog(chatlogs);
       }
     }
   }
-
     
   useEffect(() => {
     let timer: NodeJS.Timeout;
@@ -113,7 +107,6 @@ export default function Show() {
       const f = await getFriendsProfileByPidID(myName.toString(), name);
       setFriendProfile(f);
     }
-
     setProfileMode("");
   }
 
@@ -198,7 +191,7 @@ export default function Show() {
           </ul>
         </div>
       }
-      {mode == "server" ?
+      { mode == "server" ?
         <div className="chat-contain"></div>
       :
         <div className="chat-contain">
@@ -208,24 +201,18 @@ export default function Show() {
               <div className="selected-friend">
                 <div className='friend-icon'/>
                 <h2 className='selected-friend-name'>
-                  {
-                    profile?.map((p) => {
-                      if (p.id == selectedFriend){
-                        return p.name;
-                      }
-                    })
-                  }
+                  {friendProfile?.find((p) => p.id === selectedFriend)?.name}
                 </h2>
               </div>
               <div className="friend-detail">三</div>
             </div>
             <hr className='friend-hr' />
             {chatlog?.map((chat) => (
-              chat.from === myName ? (
+              chat.from_pid == selectedFriend ? (
                 <div className="chat-friend left" key={chat.id}>
                   <div className="chat-friend-icon" />
                   <div>
-                    <p className="chat-friend-name">{chat.to}</p>
+                    <p className="chat-friend-name">{friendProfile?.find((p) => p.id == chat.from_pid)?.name}</p>
                     <div className="chat-log">
                       <p className="chat-msg">{chat.msg}</p>
                     </div>
@@ -234,7 +221,7 @@ export default function Show() {
               ) : (
                 <div className="chat-friend right" key={chat.id}>
                   <div>
-                    <p className="chat-friend-name">{chat.to}</p>
+                    <p className="chat-friend-name">{profile?.find((p) => p.id == chat.from_pid)?.name}</p>
                     <div className="chat-log">
                       <p className="chat-msg">{chat.msg}</p>
                     </div>
