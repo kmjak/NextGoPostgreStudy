@@ -35,8 +35,8 @@ export const getFriendsProfileByPidID = async (name:string, pname:string):Promis
 }
 
 // get chatlog
-export const getChatLog = async (name:string,friend:string): Promise<APIChatLogData[]> => {
-  const res = await fetch(`http://localhost:8080/get/chatlog/${name}/${friend}`);
+export const getChatLog = async (name:string,pid:number): Promise<APIChatLogData[]> => {
+  const res = await fetch(`http://localhost:8080/get/chatlog/${name}/${pid}`);
   const ret = await res.json();
   return ret;
 }

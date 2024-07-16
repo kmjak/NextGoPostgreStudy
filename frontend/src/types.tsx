@@ -5,8 +5,10 @@ export interface APIuserData {
 }
 export interface APIChatLogData {
   id: number;
-  from: string;
-  to: string;
+  from_pid: number;
+  to_pid: number;
+  from_id: number;
+  to_id: number;
   msg: string;
 }
 export interface APIProfileData {

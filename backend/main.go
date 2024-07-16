@@ -2,8 +2,10 @@ package main
 
 import (
 	"database/sql"
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -73,14 +75,18 @@ func main() {
 		c.JSON(http.StatusOK, users)
 	})
 
-	// // get chat log
-	// r.GET("/get/chatlog/:name/:friend", func(c *gin.Context) {
-	// 	name := c.Param("name")
-	// 	id := getUserByName(db, name)[0].ID
-	// 	FriendID := getProfilesByPnameID(db, pid, name)[0].UserID
-	// 	chatlogs := getChatLogsByID(db, id, FriendID)
-	// 	c.JSON(http.StatusOK, chatlogs)
-	// })
+	// get chat log
+	r.GET("/get/chatlog/:name/:friendPid", func(c *gin.Context) {
+		name := c.Param("name")
+		friendPid := c.Param("friendPid")
+		pid, err := strconv.Atoi(friendPid)
+		if err != nil {
+			log.Fatalf("Failed to convert friendId to int: %v", err)
+		}
+		myId := getUserByName(db, name)[0].ID
+		chatlogs := getChatLogsByPidID(db, myId, pid)
+		c.JSON(http.StatusOK, chatlogs)
+	})
 
 	// get user`s friends profile
 	r.GET("/get/friends/id/:name", func(c *gin.Context) {
@@ -198,41 +204,6 @@ func getUserByName(db *sql.DB, name string) []User {
 	return users
 }
 
-func getChatLogsByID(db *sql.DB, id1 int, id2 int) []Chat {
-	rows, err := db.Query("SELECT * FROM chatlog WHERE (from_userid=$1 and to_userid=$2) or (from_userid=$2 and to_userid=$1)", id1, id2)
-	if err != nil {
-		return nil
-	}
-	defer rows.Close()
-
-	var chatlogs []Chat
-	for rows.Next() {
-		var chatlog Chat
-		if err := rows.Scan(&chatlog.ID, &chatlog.From, &chatlog.To, &chatlog.Msg); err != nil {
-			return nil
-		}
-		chatlogs = append(chatlogs, chatlog)
-	}
-	return chatlogs
-}
-func getChatLogsByPid(db *sql.DB, pid1 string, pid2 string) []Chat {
-	rows, err := db.Query("SELECT * FROM chatlog WHERE (from_userid=$1 and to_userid=$2) or (from_userid=$2 and to_userid=$1)", pid1, pid2)
-	if err != nil {
-		return nil
-	}
-	defer rows.Close()
-
-	var chatlogs []Chat
-	for rows.Next() {
-		var chatlog Chat
-		if err := rows.Scan(&chatlog.ID, &chatlog.From, &chatlog.To, &chatlog.Msg); err != nil {
-			return nil
-		}
-		chatlogs = append(chatlogs, chatlog)
-	}
-	return chatlogs
-}
-
 func getFriendsByID(db *sql.DB, id int) []Friend {
 	rows, err := db.Query("SELECT * FROM friends WHERE user1_id=$1 or user2_id=$1", id)
 	if err != nil {
@@ -317,4 +288,22 @@ func getProfilesByPnameID(db *sql.DB, user_pid int, name string) []Profile {
 		profiles = append(profiles, profile)
 	}
 	return profiles
+}
+func getChatLogsByPidID(db *sql.DB, id1 int, pid2 int) []Chat {
+	rows, err := db.Query("SELECT * FROM chatlog WHERE (from_userid=$1 and to_pid=$2) or (from_pid=$2 and to_userid=$1)", id1, pid2)
+	if err != nil {
+		fmt.Println(err, id1, pid2)
+		return nil
+	}
+	defer rows.Close()
+
+	var chatlogs []Chat
+	for rows.Next() {
+		var chatlog Chat
+		if err := rows.Scan(&chatlog.ID, &chatlog.From, &chatlog.To, &chatlog.From_userid, &chatlog.To_userid, &chatlog.Msg); err != nil {
+			return nil
+		}
+		chatlogs = append(chatlogs, chatlog)
+	}
+	return chatlogs
 }
