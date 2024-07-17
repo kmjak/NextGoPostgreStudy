@@ -155,11 +155,59 @@ func main() {
 	})
 
 	// send msg
-	r.GET("/send/msg/:from/:to/:msg", func(c *gin.Context) {
-		from := c.Param("from")
-		to := c.Param("to")
+	r.GET("/send/msg/:from_name/:to_pid/:msg", func(c *gin.Context) {
+		from_name := c.Param("from_name")
+		to_pid := c.Param("to_pid")
 		msg := c.Param("msg")
-		db.Exec("INSERT INTO chatlog (msg_from, msg_to, msg) VALUES ($1,$2,$3)", from, to, msg)
+
+		friendPid, err := strconv.Atoi(to_pid)
+		if err != nil {
+			log.Fatalf("Failed to convert friendId to int: %v", err)
+		}
+
+		myId := getUserByName(db, from_name)[0].ID
+		friendData := getFriendsByID(db, myId)
+		var myPid int
+		for i := 0; i < len(friendData); i++ {
+			if friendData[i].User1_id == myId && friendData[i].User2_pid == friendPid {
+				myPid = friendData[i].User1_pid
+			} else if friendData[i].User2_id == myId && friendData[i].User1_pid == friendPid {
+				myPid = friendData[i].User2_pid
+			}
+		}
+
+		friendId := getProfilesByPid(db, friendPid)[0].UserID
+		db.Exec("INSERT INTO chatlog (from_pid,to_pid,from_userid,to_userid,msg) VALUES ($1,$2,$3,$4,$5)", myPid, friendPid, myId, friendId, msg)
+	})
+
+	//  change assigment profile
+	r.GET("/change/assignment/:name/:pname/:friendPid", func(c *gin.Context) {
+		name := c.Param("name")
+		pname := c.Param("pname")
+		friend := c.Param("friendPid")
+		friendPid, err := strconv.Atoi(friend)
+		if err != nil {
+			log.Fatalf("Failed to convert friendId to int: %v", err)
+		}
+		id := getUserByName(db, name)[0].ID
+		myPid := getProfilesByPnameID(db, id, pname)[0].ID
+		friendId := getProfilesByPid(db, friendPid)[0].UserID
+		friendData := getFriendDataByID(db, id, friendId)
+		//friendsの変更
+		if friendData[0].User1_id == id {
+			db.Exec("UPDATE friends SET user1_pid=$1 where id=$2", myPid, friendData[0].ID)
+		} else {
+			db.Exec("UPDATE friends SET user2_pid=$1 where id=$2", myPid, friendData[0].ID)
+		}
+		// chatlogの変更
+		chatlogs := getChatLogsByPidID(db, id, friendPid)
+		for i := 0; i < len(chatlogs); i++ {
+			if chatlogs[i].From_userid == id {
+				db.Exec("UPDATE chatlog SET from_pid=$1 where id=$2", myPid, chatlogs[i].ID)
+			} else {
+				db.Exec("UPDATE chatlog SET to_pid=$1 where id=$2", myPid, chatlogs[i].ID)
+			}
+		}
 	})
 
 	// start server
@@ -222,7 +270,24 @@ func getFriendsByID(db *sql.DB, id int) []Friend {
 	return friends
 }
 func getFriendsByPid(db *sql.DB, pid int, id int) []Friend {
-	rows, err := db.Query("SELECT * FROM friends WHERE (user1_pid=$1 and user1_id=$2) or (user2_pid=$1 and user2_id=$1)", pid, id)
+	rows, err := db.Query("SELECT * FROM friends WHERE (user1_pid=$1 and user1_id=$2) or (user2_pid=$1 and user2_id=$2)", pid, id)
+	if err != nil {
+		return nil
+	}
+	defer rows.Close()
+
+	var friends []Friend
+	for rows.Next() {
+		var friend Friend
+		if err := rows.Scan(&friend.ID, &friend.User1_id, &friend.User2_id, &friend.User1_pid, &friend.User2_pid); err != nil {
+			return nil
+		}
+		friends = append(friends, friend)
+	}
+	return friends
+}
+func getFriendDataByID(db *sql.DB, id1 int, id2 int) []Friend {
+	rows, err := db.Query("SELECT * FROM friends WHERE (user1_id=$1 and user2_id=$2) or (user1_id=$2 and user2_id=$1)", id1, id2)
 	if err != nil {
 		return nil
 	}

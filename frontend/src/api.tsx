@@ -42,8 +42,8 @@ export const getChatLog = async (name:string,pid:number): Promise<APIChatLogData
 }
 
 //send msg
-export const sendMsg = async (form:string, to:string, msg:string) => {
-  const res = await fetch(`http://localhost:8080/send/msg/${form}/${to}/${msg}`);
+export const sendMsg = async (from_name:string, to_pid:number, msg:string) => {
+  const res = await fetch(`http://localhost:8080/send/msg/${from_name}/${to_pid}/${msg}`);
 }
 
 // create user
@@ -51,4 +51,9 @@ export const addUser = async (username: string, password :string) => {
   const res = await fetch(`http://localhost:8080/add/user/${username}/${password}`);
   const ret = await res.json();
   return ret;
+}
+
+// change Assignment profile
+export const changeAssignmentProfile = async (name:string, pname:string, friendPid:number) => {
+  await fetch(`http://localhost:8080/change/assignment/${name}/${pname}/${friendPid}`);
 }
