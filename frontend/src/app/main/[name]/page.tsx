@@ -19,6 +19,7 @@ export default function Show() {
   const [profileName, setProfileName] = useState<string>(myName.toString());
   const [friendSettingMode, setFriendSettingMode] = useState<string>("hide");
   const [profileAssignmentMode, setProfileAssignmentMode] = useState<string>("hide");
+  const eventSourceRef = useRef<EventSource | null>(null);
   const ref = useRef<HTMLTextAreaElement>(null);
 
 
@@ -69,25 +70,32 @@ export default function Show() {
   }
     
   useEffect(() => {
-    let timer: NodeJS.Timeout;
+    if (selectedFriend !== null) {
+      // 既存のEventSourceがあれば閉じる
+      if (eventSourceRef.current) {
+        eventSourceRef.current.close();
+      }
 
-    const resetMode = () => {
-      setUserMode("stop");
-    };
+      // 新しいEventSourceを作成
+      const eventSource = new EventSource(`http://localhost:8080/stream/chatlog/${myName}/${selectedFriend}`);
+      eventSourceRef.current = eventSource;
 
-    const handleMouseMove = () => {
-      setUserMode("active");
-      clearTimeout(timer);
-      timer = setTimeout(resetMode, 1000);
-    };
+      eventSource.onmessage = (event) => {
+        const newChatlog = JSON.parse(event.data);
+        setChatlog(newChatlog);
+      };
 
-    window.addEventListener("mousemove", handleMouseMove);
+      eventSource.onerror = (error) => {
+        console.error('EventSource failed:', error);
+        eventSource.close();
+      };
 
-    return () => {
-      window.removeEventListener("mousemove", handleMouseMove);
-      clearTimeout(timer);
-    };
-  }, []);
+      return () => {
+        eventSource.close();
+        eventSourceRef.current = null;
+      };
+    }
+  }, [myName, selectedFriend]);
 
   useEffect(() => {
     const fetchProfileData = async () => {

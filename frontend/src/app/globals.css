@@ -136,7 +136,7 @@
   background-color: white;
   width: 40px;
   height: 40px;
-  border: 2px solid #1F1F1F;
+  border: 2px solid #b23f8d;
   box-shadow: 0 0 0 1px lightgreen;
 }
 .my-icon.stop::after{
@@ -184,7 +184,7 @@
   background-color: white;
   width: 40px;
   height: 40px;
-  border: 2px solid #1F1F1F;
+  border: 2px solid #303134;
   box-shadow: 0 0 0 1px lightgreen; 
 }
 .friend-icon.stop::after{
@@ -196,7 +196,7 @@
   height: 25%;
   border-radius: 50%;
   background-color: red;
-  border: #1F1F1F 2px solid;
+  border: #303134 2px solid;
 }
 .friend-icon.active::after{
   content: '';
