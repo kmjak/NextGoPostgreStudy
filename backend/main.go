@@ -2,12 +2,10 @@ package main
 
 import (
 	"database/sql"
-	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
 	"strconv"
-	"time"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -211,39 +209,6 @@ func main() {
 			}
 		}
 	})
-	r.GET("/stream/chatlog/:name/:friendPid", func(c *gin.Context) {
-		name := c.Param("name")
-		friendPid := c.Param("friendPid")
-
-		// クライアントにSSEヘッダーを設定
-		c.Writer.Header().Set("Content-Type", "text/event-stream")
-		c.Writer.Header().Set("Cache-Control", "no-cache")
-		c.Writer.Header().Set("Connection", "keep-alive")
-		c.Writer.Flush()
-
-		// チャネルを作成してゴルーチンでチャットログを監視
-		chatLogChan := make(chan []Chat)
-		go monitorChatLog(db, name, friendPid, chatLogChan)
-
-		// クライアント接続が切れたらチャネルを閉じる
-		c.Request.Context().Done()
-		defer close(chatLogChan)
-
-		for {
-			select {
-			case <-c.Request.Context().Done():
-				return
-			case chatLog := <-chatLogChan:
-				data, err := json.Marshal(chatLog)
-				if err != nil {
-					log.Printf("Error marshalling chat log: %v", err)
-					continue
-				}
-				fmt.Fprintf(c.Writer, "data: %s\n\n", data)
-				c.Writer.Flush()
-			}
-		}
-	})
 
 	// start server
 	port := ":8080"
@@ -251,20 +216,6 @@ func main() {
 	select {}
 }
 
-func monitorChatLog(db *sql.DB, name string, friendPid string, chatLogChan chan<- []Chat) {
-	for {
-		// チャットログを取得
-		myId := getUserByName(db, name)[0].ID
-		pid, _ := strconv.Atoi(friendPid)
-		chatLog := getChatLogsByPidID(db, myId, pid)
-
-		// チャネルに送信
-		chatLogChan <- chatLog
-
-		// 1秒待機
-		time.Sleep(time.Second)
-	}
-}
 func getAllUsers(db *sql.DB) []User {
 	rows, err := db.Query("SELECT * FROM users")
 	if err != nil {

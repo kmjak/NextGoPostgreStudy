@@ -68,34 +68,6 @@ export default function Show() {
       }
     }
   }
-    
-  useEffect(() => {
-    if (selectedFriend !== null) {
-      // 既存のEventSourceがあれば閉じる
-      if (eventSourceRef.current) {
-        eventSourceRef.current.close();
-      }
-
-      // 新しいEventSourceを作成
-      const eventSource = new EventSource(`http://localhost:8080/stream/chatlog/${myName}/${selectedFriend}`);
-      eventSourceRef.current = eventSource;
-
-      eventSource.onmessage = (event) => {
-        const newChatlog = JSON.parse(event.data);
-        setChatlog(newChatlog);
-      };
-
-      eventSource.onerror = (error) => {
-        console.error('EventSource failed:', error);
-        eventSource.close();
-      };
-
-      return () => {
-        eventSource.close();
-        eventSourceRef.current = null;
-      };
-    }
-  }, [myName, selectedFriend]);
 
   useEffect(() => {
     const fetchProfileData = async () => {
