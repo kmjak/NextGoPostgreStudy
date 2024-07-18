@@ -229,20 +229,8 @@
   flex-direction: column;
   overflow-y: auto;
 }
-.chat-contain.friend-contain-status-show{
-  width: calc(100vw - 380px);
-  transition: 0.3s ease all;
-}
-.chat-contain.setting-open.friend-contain-status-show{
-  transition: 0.3s ease all;
-  width: calc(100vw - 680px);
-}
 .chat-contain.friend-contain-status-hide{
   width: calc(100vw - 80px);
-}
-.chat-contain.setting-open.friend-contain-status-hide{
-  transition: 0.3s ease all;
-  width: calc(100vw - 380px);
 }
 .chat-content {
   width: 85%;
@@ -430,30 +418,34 @@
 
 .friend-setting-modal{
   position: fixed;
-  z-index: 110;
-  top: 0;
+  z-index: 120;
+  top: 100px;
   width: 300px;
-  height: 100vh;
   background-color: #303134;
   justify-content: center;
   align-items: center;
   transition: 0.3s ease all;
   color: white;
+  right: 115px;
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  pointer-events: none;
 }
-.friend-setting-modal.hide{
-  right: -300px;
-}
+
 .friend-setting-modal.show{
-  right: 0;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 .setting-title{
   text-align: center;
   padding: 20px 0;
-  font-size: 30px;
+  font-size: 20px;
 }
 .friend-setting-modal .setting{
   padding: 10px 10px;
-  font-size: 20px;
+  font-size: 15px;
   cursor: pointer;
 }
 .friend-setting-modal .setting:hover{
@@ -461,7 +453,7 @@
 }
 .friend-setting-modal .setting-close{
   padding: 10px 10px;
-  font-size: 25px;
+  font-size: 20px;
   cursor: pointer;
   text-align: center;
 
@@ -471,25 +463,32 @@
 }
 .change-profile-modal{
   position: fixed;
-  z-index: 120;
-  top: 0;
-  width: 300px;
-  height: 100vh;
+  z-index: 100;
+  top: 100px;
+  width: 200px;
   background-color: #303134;
   justify-content: center;
   align-items: center;
   transition: 0.3s ease all;
   color: white;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  right: 415px;
+  border-right: 1px solid #636363;
+
 }
 .change-profile-modal.hide{
-  right: -300px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
 }
 .change-profile-modal.show{
-  right: 0;
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
 }
 .change-profiles{
   padding: 10px 0 10px 25px;
-  font-size: 25px;
+  font-size: 15px;
 }
 .change-profiles:hover{
   background-color: #7d859746;
@@ -516,9 +515,68 @@
 }
 .add-profile{
   color: white;
-  font-size: 25px;
+  font-size: 20px;
   padding: 10px 0 10px 10px;
 }
 .add-profile:hover{
   background-color: #7d859746;
+}
+.user-setting{
+  position: fixed;
+  z-index: 120;
+  width: 300px;
+  height: calc(100vh - 100px);
+  left: 80px;
+  background-color: #303134;
+  justify-content: center;
+  align-items: center;
+  transition: 0.3s ease all;
+  color: white;
+}
+.user-setting.hide{
+  top : -100vh;
+}
+.user-setting.show{
+  top : 0;
+}
+.user-setting p{
+  padding: 10px 0 10px 10px;
+  font-size: 25px;
+  cursor: pointer;
+}
+.user-setting p:hover{
+  background-color: #7d859746;
+}
+.search-field{
+  text-align: center;
+  position: fixed;
+  z-index: 140;
+  top: 100px;
+  width: 200px;
+  background-color: #303134;
+  color: white;
+  transition: opacity 0.3s ease, visibility 0.3s ease;
+  right: 415px;
+  border-right: 1px solid #636363;
+}
+.search-field.hide{
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+.search-field.show{
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+.search-input{
+  text-align: left;
+  width: 80%;
+  margin: 20px auto 10px;
+  font-size: 12px;
+  display: block;
+  border: none;
+  border-radius: 10px;
+  padding: 7px 10px;
+  outline: none;
 }
