@@ -19,6 +19,7 @@ export default function Show() {
   const [profileName, setProfileName] = useState<string>(myName.toString());
   const [friendSettingMode, setFriendSettingMode] = useState<string>("hide");
   const [profileAssignmentMode, setProfileAssignmentMode] = useState<string>("hide");
+  const [friendModal, setFriendModal] = useState<string>("show");
   const eventSourceRef = useRef<EventSource | null>(null);
   const ref = useRef<HTMLTextAreaElement>(null);
 
@@ -145,6 +146,9 @@ export default function Show() {
   const handleHideProfileChangeModal = async () => {
     setProfileAssignmentMode("hide");
   }
+  const handleChangeFriendModal = async () => {
+    setFriendModal(friendModal === "show" ? "hide" : "show");
+  }
 
   return (
     <main className='chat-container'>
@@ -192,7 +196,7 @@ export default function Show() {
           </div>
         </div>
         :
-        <div className="friend-contain">
+        <div className={`friend-contain ${friendModal}`}>
           <div>
             <section className="my-status-contain" onClick={handleChangeProfileMode}>
               <div className={`my-icon ${userMode}`}></div>
@@ -211,6 +215,7 @@ export default function Show() {
                   )
                 })
               }
+              <p className='add-profile'>add profile</p>
             </div>
           </div>
           <ul>
@@ -226,10 +231,11 @@ export default function Show() {
           </ul>
         </div>
       }
+      <button onClick={handleChangeFriendModal} className={`friend-modal-change-btn ${friendModal}`}>{friendModal == "show" ? "く" : ">"}</button>
       { mode == "server" ?
         <div className="chat-contain"></div>
       :
-        <div className={`chat-contain ${friendSettingMode == "show" ? ("setting-open") : null}`}>
+        <div className={`chat-contain ${friendSettingMode == "show" ? ("setting-open") : null} friend-contain-status-${friendModal}`}>
           <div className="chat-content">
             <div className="friend-option">
               <div className="none" />

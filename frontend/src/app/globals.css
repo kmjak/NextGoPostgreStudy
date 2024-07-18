@@ -72,6 +72,7 @@
   width: 80px;
   height: 100%;
   background-color: #1F1F1F;
+  border-right: 1px solid #303134;
 }
 .chat-container .left-side .mode-icon{
   width: 48px;
@@ -83,6 +84,7 @@
   border-radius: 15px;
 }
 .chat-container .left-side .mode-group-hr{
+  margin: 0 auto;
   width: 90%;
   height: 2px;
   background-color: grey;
@@ -117,8 +119,14 @@
   width: 300px;
   height: 100%;
   background-color: #303134;
+  transition: 0.3s ease all;
 }
-
+.friend-contain.hide{
+  display: none;
+}
+.friend-contain.show{
+  display: block;
+}
 .my-status-contain {
   display: flex;
   gap: 10px;
@@ -220,11 +228,21 @@
   display: flex;
   flex-direction: column;
   overflow-y: auto;
+}
+.chat-contain.friend-contain-status-show{
+  width: calc(100vw - 380px);
   transition: 0.3s ease all;
 }
-.chat-contain.setting-open{
+.chat-contain.setting-open.friend-contain-status-show{
+  transition: 0.3s ease all;
   width: calc(100vw - 680px);
-
+}
+.chat-contain.friend-contain-status-hide{
+  width: calc(100vw - 80px);
+}
+.chat-contain.setting-open.friend-contain-status-hide{
+  transition: 0.3s ease all;
+  width: calc(100vw - 380px);
 }
 .chat-content {
   width: 85%;
@@ -474,5 +492,33 @@
   font-size: 25px;
 }
 .change-profiles:hover{
+  background-color: #7d859746;
+}
+.friend-modal-change-btn{
+  background: none;
+  border: none;
+  outline: none;
+  font-size: 25px;
+  color: white;
+  cursor: pointer;
+  position: fixed;
+  top: 0;
+  padding: 0 20px;
+  left: 375px;
+  height: 100vh;
+  line-height: 100vh;
+}
+.friend-modal-change-btn.show{
+  left: 375px;
+}
+.friend-modal-change-btn.hide{
+  left: 75px;
+}
+.add-profile{
+  color: white;
+  font-size: 25px;
+  padding: 10px 0 10px 10px;
+}
+.add-profile:hover{
   background-color: #7d859746;
 }
