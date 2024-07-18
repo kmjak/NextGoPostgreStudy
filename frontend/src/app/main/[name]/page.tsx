@@ -2,7 +2,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { changeAssignmentProfile, getChatLog, getFriendsProfileByID, getFriendsProfileByPidID, getProfileByName, sendMsg } from '@/api';
 import { APIChatLogData, APIProfileData } from '@/types';
-import { useParams } from 'next/navigation';
+import { useParams, useRouter } from 'next/navigation';
 
 export default function Show() {
   const params = useParams();
@@ -20,8 +20,11 @@ export default function Show() {
   const [friendSettingMode, setFriendSettingMode] = useState<string>("hide");
   const [profileAssignmentMode, setProfileAssignmentMode] = useState<string>("hide");
   const [friendModal, setFriendModal] = useState<string>("show");
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const [mySetting, setMySetting] = useState<string>("hide");
+  const [isSearchField, setIsSearchField] = useState<string>("hide");
+  const [seartchWord, setSearchWord] = useState<string>("");
   const ref = useRef<HTMLTextAreaElement>(null);
+  const router = useRouter()
 
 
   const handleChangeMode = async () => {
@@ -36,27 +39,29 @@ export default function Show() {
     if(user_id !== null){
       ref.current?.focus();
       if(selectedFriend !== user_id){
+        const chatlog = await getChatLog(myName.toString(), user_id);
+        setChatlog(chatlog);
         setSelectedFriend(user_id);
         setMsg("");
       }
     }
   }
 
-  useEffect(() => {
-    let interval: NodeJS.Timeout;
-    if (selectedFriend !== null) {
-      const fetchChatLog = async () => {
-        const chatlogs = await getChatLog(myName.toString(), selectedFriend);
-        setChatlog(chatlogs);
-      };
+  // useEffect(() => {
+  //   let interval: NodeJS.Timeout;
+  //   if (selectedFriend !== null) {
+  //     const fetchChatLog = async () => {
+  //       const chatlogs = await getChatLog(myName.toString(), selectedFriend);
+  //       setChatlog(chatlogs);
+  //     };
 
-      interval = setInterval(fetchChatLog, 3000);
+  //     interval = setInterval(fetchChatLog, 3000);
 
-      fetchChatLog();
-    }
+  //     fetchChatLog();
+  //   }
 
-    return () => clearInterval(interval);
-  }, [myName, selectedFriend]);
+  //   return () => clearInterval(interval);
+  // }, [myName, selectedFriend]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -80,8 +85,12 @@ export default function Show() {
     fetchProfileData();
   },[myName])
 
-  const handleChangeProfileMode = async () => {
-    setProfileMode(profileMode === "show" ? "" : "show");
+  const handleOpenProfileMode = async () => {
+    setProfileMode("show");
+    setMySetting("hide");
+  }
+  const handleCloseProfileMode = async () => {
+    setProfileMode("");
   }
   const handleChangeProfile = async (name:string) => {
     setProfileName(name);
@@ -98,12 +107,16 @@ export default function Show() {
   }
 
   const handleSettings = async () => {
+    const elem = document.querySelector(".friend-setting-modal");
     setFriendSettingMode(friendSettingMode === "show" ? "hide" : "show");
     setProfileAssignmentMode("hide");
+    setSearchWord("");
+    setIsSearchField("hide");
   }
 
   const handleChangeProfileAssignment = async () => {
     setProfileAssignmentMode(profileAssignmentMode === "show" ? "hide" : "show");
+    setIsSearchField("hide");
   }
 
   const handleChangeProfileAssignmentData = async (name:string) => {
@@ -139,16 +152,37 @@ export default function Show() {
     updateFriendProfiles();
   }, [profileName, myName]);
 
-  const handleCloseFriendSettingModal = async () => {
-    setFriendSettingMode("hide");
-  }
 
   const handleHideProfileChangeModal = async () => {
     setProfileAssignmentMode("hide");
   }
   const handleChangeFriendModal = async () => {
     setFriendModal(friendModal === "show" ? "hide" : "show");
+    const elem = document.querySelector(".friend-modal-change-btn");
   }
+  const handleMySettings = async () => {
+    setMySetting(mySetting === "show" ? "hide" : "show");
+  }
+  const handleLogout = async ()=> {
+    router.push("/")
+  }
+  const handleChangeSearchField = async () => { 
+    setIsSearchField(isSearchField === "show" ? "hide" : "show");
+    setProfileAssignmentMode("hide");
+  }
+  const handleSearchWord = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchWord(e.target.value);
+    // if(selectedFriend !== null){
+    //   if(e.target.value === ""){
+    //     const chatlog = await getChatLog(myName.toString(), selectedFriend);
+    //     setChatlog(chatlog);
+    //   }else{
+    //     const chatlog = await getSearchWord(myName.toString(), selectedFriend, e.target.value);
+    //     setChatlog(chatlog);
+    //   }
+    // }
+  }
+
 
   return (
     <main className='chat-container'>
@@ -172,10 +206,12 @@ export default function Show() {
           </div>
         }
       </div>
+
+
       {mode == "server" ? 
         <div className="channel-contain">
           <div>
-            <section className="my-status-contain" onClick={handleChangeProfileMode}>
+            <section className="my-status-contain" onClick={handleOpenProfileMode}>
               <div className={`my-icon ${userMode}`}></div>
               <p className="my-name">{profileName}</p>
             </section>
@@ -198,10 +234,14 @@ export default function Show() {
         :
         <div className={`friend-contain ${friendModal}`}>
           <div>
-            <section className="my-status-contain" onClick={handleChangeProfileMode}>
+            <section className="my-status-contain" onClick={handleMySettings}>
               <div className={`my-icon ${userMode}`}></div>
               <p className="my-name">{profileName}</p>
             </section>
+            <div className={`user-setting ${mySetting}`}>
+              <p onClick={handleOpenProfileMode}>profile</p>
+              <p onClick={handleLogout}>Log out</p>
+            </div>
             <div className="mode-msg">
               <hr className="mode-hr"/>
             </div>
@@ -216,6 +256,7 @@ export default function Show() {
                 })
               }
               <p className='add-profile'>add profile</p>
+              <p className='add-profile' onClick={handleCloseProfileMode}>close</p>
             </div>
           </div>
           <ul>
@@ -248,12 +289,13 @@ export default function Show() {
               <div className="friend-detail" onClick={handleSettings}>三</div>
             </div>
             <div className={`friend-setting-modal ${friendSettingMode}`}>
-              <h1 className='setting-title'>settings</h1>
               <p className='setting' onClick={handleChangeProfileAssignment}>Change profile assignment</p>
-              <p className='setting-close' onClick={handleCloseFriendSettingModal}>close</p>
+              <p className='setting' onClick={handleChangeSearchField}>search word..</p>
+              <p className='setting'>pinned</p>
+              <p className='setting'>hide</p>
             </div>
             <div className={`change-profile-modal ${profileAssignmentMode === "hide" ? "hide" : "show"}`}>
-              <h2 className='setting-title'>Profile</h2>
+              <h2 className='setting-title'>Assignment Profile</h2>
               {
                 profile?.map((p) => {
                   return (
@@ -264,6 +306,12 @@ export default function Show() {
                 })
               }
               <p className="change-profiles" onClick={handleHideProfileChangeModal}>back..</p>
+            </div>
+            <div className={`search-field ${isSearchField}`}>
+              <label>
+                {seartchWord === "" ? "Search Word.." : seartchWord}
+                <input type="text" onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleSearchWord(e)} value={seartchWord} className='search-input'/>
+              </label>
             </div>
             <hr className='friend-hr' />
             {chatlog?.map((chat) => (
